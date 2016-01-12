@@ -13,19 +13,21 @@ void initialize(double* const u, const double dx, const double xmin,
 //---------------------------------------
 int main(){
 
-  const double tEnd = ;
-  const double V = ;
+  const double tEnd = 5;
+  const double V = 1;
+  
+  const double ratio = 1.05; // ratio = dx/dt
 
-  const int N  = ;
+  const int N  = 256 ;
   const double xmin = -10;
   const double xmax =  10;
   const double dx = (xmax-xmin)/(N-1);
-  double dt = ;
+  double dt = dx/ratio;
   const int Na = 10; // Number of output files up to tEnd
   const int Nk = int(tEnd/Na/dt);
 
-  double* u0 = new double[N];
-  double* u1 = new double[N];
+  double* u0 = new double[N]; // u(x_i, t_n)
+  double* u1 = new double[N]; // u(x_i, t_n+1)
   double* h;
 
   stringstream strm;
@@ -37,11 +39,17 @@ int main(){
   for(int i=1; i<=Na; i++)
   {
    for(int j=0; j<Nk; j++){
-
-      // Put call to step function here
-
-      // swap arrays u0 <-> u1,
-      // however do not copy values, be more clever ;)
+	   
+	   //scan through spatial domain, use boundary condition u_-1=0;
+	   u1[0] = - V*dt/dx * u0[0] + u0[0];
+	   for( int i=1; i<N; i++){
+		   u1[i] = - V*dt/dx * (u0[i]-u0[i-1]) + u0[i];
+	   }
+	   
+	   //triangle swap u1<->u0
+	   double* swap = u1;
+	   u1 = u0;
+	   u0 = swap;
    }
    strm.str("");
    strm << "u_" << i;
@@ -78,4 +86,4 @@ void writeToFile(const double* const u, const string s, const double dx,
      out << x << "\t" << u[i] << endl;
    }
    out.close();
-}
+} 
